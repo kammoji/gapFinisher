@@ -1,0 +1,373 @@
+#!/bin/bash
+
+# File: gapFinisher
+# Author: Juhana Kammonen et al. 30.11.2017
+# Purpose: Finish (fill) gaps from SSPACE-LongRead (v 1.1) output
+
+# Prerequisites:  Existing SSPACE-LongRead run with -k 1 option (directory "inner-scaffold-sequences" exists)
+#		  FGAP v1.8 installed and set into your system path
+
+# Usage: gapFinisher -i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_SSPACE_LONG_READS_FASTA>
+
+#
+# DECLARATIONS:
+# declare gap finisher function:
+
+#
+# GAP FINISHING LOGIC:
+#
+gap_finish(){
+
+	LOCAL_SSPACE_LONG_READS_FASTA=$1
+	echo $LOCAL_SSPACE_LONG_READS_FASTA
+	LOCAL_FASTA_INDEX=$2
+	echo $LOCAL_FASTA_INDEX
+	LOCAL_SCAFFOLD_INDEX=$3
+	echo $LOCAL_SCAFFOLD_INDEX
+	LOCAL_THREAD_COUNTER=$4
+	echo $LOCAL_THREAD_COUNTER
+	GAPFINISHER_PREFIX=$5
+	echo $GAPFINISHER_PREFIX
+	MCR_PREFIX=$6
+	echo $MCR_PREFIX
+	shift
+	shift
+	shift
+	shift
+	shift
+	shift
+	local_scaffolds=("${@}")
+
+	wd=$(echo $(cd ..;pwd))
+	counter=1
+	for scaffold in ${local_scaffolds[@]}; do
+
+		if [ -d $scaffold ]
+		then
+			cd $scaffold
+			echo '[INFO] Existing directory' $scaffold 'found, skipping...'
+		else
+			mkdir $scaffold
+			echo '[INFO] Thread' $LOCAL_THREAD_COUNTER 'Processing scaffold' $counter/${#local_scaffolds[@]} '(' $scaffold ')'
+			cat $scaffold\_*.fa > $scaffold/ccs.fa
+			cd $scaffold
+	
+			# Set matlab temp dir in this directory to prevent the "Could not access the MCR component cache." error:
+			mkdir tmp_dir
+			TMPDIR_PATH=$(find `pwd` -name "tmp_dir")
+			export MCR_CACHE_ROOT=$TMPDIR_PATH
+			
+			grep ">" ccs.fa | sed -e 's/>//' | cut -d' ' -f1 | sort | uniq > ccs_headers
+			$GAPFINISHER_PREFIX"bin/fastafetch" -F TRUE -q ccs_headers -f $LOCAL_SSPACE_LONG_READS_FASTA -i $LOCAL_FASTA_INDEX > full_ccs.fa
+			$GAPFINISHER_PREFIX"bin/fastaindex" -f full_ccs.fa -i full_ccs.index 
+			grep $scaffold\| $wd/scaffolds.fasta | sed -e 's/>//' > scaffold_header
+			$GAPFINISHER_PREFIX"bin/fastafetch" -F TRUE -q scaffold_header -f $wd/scaffolds.fasta -i $LOCAL_SCAFFOLD_INDEX > $scaffold.fa
+			ccs_headers=$(cat ccs_headers)
+			headersLengthArray=( $ccs_headers )
+			echo '[INFO] Thread' $LOCAL_THREAD_COUNTER ': Found '${#headersLengthArray[@]} 'unique ccs reads for this scaffold'
+			round_counter=1
+			for header in $ccs_headers; do
+				echo $header > header_for_FGAP
+				$GAPFINISHER_PREFIX"bin/fastafetch" -F TRUE -q header_for_FGAP -f full_ccs.fa -i full_ccs.index > read_for_FGAP.fa
+				echo '[INFO] Thread' $LOCAL_THREAD_COUNTER ': FGAP for '$round_counter/${#headersLengthArray[@]} 'ccs reads...'
+				if [ "$round_counter" == 1  ]
+				then
+					echo '[INFO] Thread' $LOCAL_THREAD_COUNTER ': Now we must wait for the giant aliens (as FGAP rolls to life for the first time...)'
+					$GAPFINISHER_PREFIX"FGAP/run_fgap.sh" $MCR_PREFIX -d $scaffold.fa -a read_for_FGAP.fa -i 80 -C 1000 -b $GAPFINISHER_PREFIX"FGAP/blast/" -R 30000 -I 30000 -o FGAP_round$round_counter >> FGAP_output.log
+					draft=FGAP_round$round_counter.final.fasta
+					round_counter=$((round_counter+1))
+
+				elif [ "$round_counter" == ${#headersLengthArray[@]} ]
+				then
+			        	let draft_counter=$((round_counter-1))
+			        	while ! [ -f $draft ]; do 
+
+			                	draft_counter=$[$draft_counter - 1]
+						draft=FGAP_round$draft_counter.final.fasta
+						if [ "$draft_counter" -le "0" ]
+						then
+							#No successful FGAP found, revert to original scaffold:
+							draft=$scaffold.fa
+						fi
+			        	done
+					echo '[INFO] Thread' $LOCAL_THREAD_COUNTER 'final round FGAP in progress for' $counter/${#local_scaffolds[@]} '(' $scaffold ')'
+					$GAPFINISHER_PREFIX"FGAP/run_fgap.sh" $MCR_PREFIX -d $draft -a read_for_FGAP.fa -i 80 -C 1000 -b $GAPFINISHER_PREFIX"FGAP/blast/" -R 30000 -I 30000 -o FGAP_FINAL >> FGAP_output.log
+
+
+				else	# when executed this block means not first nor last round
+		
+			        	let draft_counter=$((round_counter-1))
+			        	while ! [ -f "$draft" ]; do
+
+			                	draft_counter=$[$draft_counter - 1]
+			                	draft=FGAP_round$draft_counter.final.fasta
+			                	if [ "$draft_counter" -le "0" ]
+			                	then
+			                        	draft=$scaffold.fa
+			                	fi
+			        	done
+					let output_counter=$round_counter
+
+					$GAPFINISHER_PREFIX"FGAP/run_fgap.sh" $MCR_PREFIX -d $draft -a read_for_FGAP.fa -i 80 -C 1000 -b $GAPFINISHER_PREFIX"FGAP/blast/" -R 30000 -I 30000 -o FGAP_round$output_counter >> FGAP_output.log
+					draft=FGAP_round$output_counter.final.fasta
+					round_counter=$((round_counter+1))
+
+				fi
+
+			done
+		fi
+
+		if [ -f FGAP_FINAL.final.fasta ]
+		then
+			echo '[INFO] Thread' $LOCAL_THREAD_COUNTER 'reports: Final round of FGAP successful. Filled output for this scaffold in' $scaffold'/FGAP_FINAL.final.fasta'
+
+		elif [ -z `find -name "*.final.fasta"` ]
+		then
+			echo '[WARN] Thread' $LOCAL_THREAD_COUNTER 'reports FGAP was unable to fill any gaps for this scaffold (' $scaffold ')'
+		else
+
+			echo '[INFO] Thread' $LOCAL_THREAD_COUNTER 'reports FGAP_FINAL.final.fasta not found, Final round of FGAP must have been unable to fill gaps (' $scaffold ')'
+			final_fasta=$(find *.final.fasta | tail -n1)
+			rsync $final_fasta FGAP_FINAL.final.fasta
+			echo '[INFO] Thread' $LOCAL_THREAD_COUNTER 'reports' $final_fasta 'has been copied as FGAP.FINAL.final.fasta for this scaffold'
+
+
+		fi
+
+		# Delete Matlab cache
+		rm -rf tmp_dir
+
+		# exit working directory
+		cd ..
+		
+		#ESTIMATE TIME LEFT UNTIL COMPLETION
+		echo '[INFO] Thread' $LOCAL_THREAD_COUNTER 'estimates total execution time left :' $(( (${#local_scaffolds[@]}-$counter)/60 )) 'hours' $((  (${#local_scaffolds[@]}-$counter)%60 )) 'minutes'
+
+		counter=$((counter+1))
+	done
+echo 'Thread' $LOCAL_THREAD_COUNTER ': Finished gap filling job.'
+return 0
+
+} # END FUNCTION gap_finish()
+
+#
+#
+# MAIN - gapFinisher launcher utility (command line argument parsing & thread assignment)
+#
+# Set ABORT if nonzero exit value:
+set -e
+
+echo -------------
+echo gapFinisher - Fill gaps from SSPACE-LongRead '(v 1.1)' output - Juhana Kammonen
+echo -------------
+echo
+
+if [ -z $1 ]
+then
+	echo Usage: gapFinisher '-i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_SSPACE_LONG_READS_FASTA> -m <MCR_location> -t <NUM_THREADS>'
+	echo
+	echo 'For full help run: gapFinisher -h'
+	echo 'Contact juhana.kammonen@helsinki.fi for further support'
+	exit 1
+
+elif [ $1 == "-h" ] && [ -z $2 ]	# Parse command line options:
+then
+
+	echo '[TODO] Output full help'
+	exit 1
+else	# Parse command line options
+	
+	gapFinisher_command=$0
+	GAPFINISHER_PREFIX=`readlink -f $gapFinisher_command | sed 's/gapFinisher$//'`
+	echo $GAPFINISHER_PREFIX
+	while [[ $# > 1 ]]
+	do
+	key="$1"
+
+	case $key in
+	    -i|--input-sspace-folder)
+	    PACBIO_SCAFFOLDER_RESULTS="$2"
+	    shift # past argument
+	    ;;
+	    -l|--long-reads)
+	    SSPACE_LONG_READS_FASTA="$2"
+	    shift # past argument
+	    ;;
+            -m|--mcr-location)
+            MCR_LOCATION="$2"
+            shift # past argument
+	    ;;
+	    -t|--threads)
+	    THREADS="$2"
+	    shift # past argument
+	    ;;
+	    *)
+		    # unknown option
+		echo [ERROR] Unknown 'option(s)' passed, please check 'command' line
+		echo Usage: gapFinisher '-i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_SSPACE_LONG_READS_FASTA> -m <MCR_LOCATION>'
+		echo For full help run: gapFinisher -h
+		echo 'Contact juhana.kammonen@helsinki.fi for further support'
+		echo
+		exit 1
+
+	    ;;
+	esac
+	shift # past argument or value
+	done
+	echo SSPACE LONGREAD INPUT FOLDER PATH = "${PACBIO_SCAFFOLDER_RESULTS}"
+	echo ASSOCIATED LONGREADS FASTA FILE = "${SSPACE_LONG_READS_FASTA}"
+	echo MCR LOCATION = "${MCR_LOCATION}"
+	echo NUM OF REQUESTED THREADS = "${THREADS}"
+	
+
+fi
+
+# check number of available threads:
+cpus=$(getconf _NPROCESSORS_ONLN)
+if [ $THREADS -gt $cpus ]
+then
+	echo '[ERROR] Cannot allocate' $THREADS 'CPUs for threads ("getconf _NPROCESSORS_ONLN" reports: '$cpus 'CPUs available)'
+	exit 1
+
+elif [ $THREADS -le "0" ]
+then
+	echo '[ERROR] Cannot run gapFinisher with' $THREADS 'threads (minimum is 1)'
+	exit 1
+
+fi
+
+echo Command line parsed
+
+if [ -d $PACBIO_SCAFFOLDER_RESULTS ]
+then
+	cd $PACBIO_SCAFFOLDER_RESULTS
+
+else
+	echo SSPACE-LongRead input directory not found: $PACBIO_SCAFFOLDER_RESULTS
+	exit 1
+fi
+
+echo 'Create FASTA index for reads...'
+indexPrefix=$(dirname $SSPACE_LONG_READS_FASTA)/$(basename $SSPACE_LONG_READS_FASTA .fasta)
+
+if [ -f $indexPrefix.index ]
+then
+	echo "Existing FASTA index for reads found" 
+else
+	echo "Creating..."
+	$GAPFINISHER_PREFIX"bin/fastaindex" -f $SSPACE_LONG_READS_FASTA -i $indexPrefix.index
+	echo "Index done."
+fi
+FASTA_INDEX=$indexPrefix.index
+
+# Detect pwd location at folder: "PacBio_scaffolder_results" - overkill
+if [ -f "logfile.txt" ]
+then
+	echo '[INFO] Detected pwd location at your SSPACE-LR output folder (SSPACE-LR log file found)'
+else
+	echo '[ERROR] Please set present working directory to SSPACE-LongRead (v 1.1) \"PacBio_scaffolder_results\" (where your scaffolds.fasta is located)'
+	exit 1
+fi
+	
+wd=$(pwd)
+
+if [ -e  $PACBIO_SCAFFOLDER_RESULTS/inner-scaffold-sequences ]
+then
+	scaffolds=$(find inner-scaffold-sequences -name "*.fa" | cut -d'_' -f1 | sort | uniq | cut -d'/' -f2)
+else
+	echo "[ERROR] \"inner-scaffold-sequences\" directory not found."
+	echo "[INFO] Please run SSPACE-LongRead with the -k option enabled to create \"inner-scaffold-sequences\" subdirectory"
+	exit 1
+fi
+
+scaffoldsArray=( $scaffolds )
+
+# Maximum arguments for function call in host shell check:
+max_allowed_scaffolds=$(( $(getconf ARG_MAX)-4 ))
+
+if [ $((${#scaffolds[@]}/$THREADS)) -gt $max_allowed_scaffolds ]
+then
+	echo '[ERROR] Too many scaffolds for gapFinisher to run in your shell. (getconf ARG_MAX - 4 returned' $max_allowed_scaffolds ')'
+	echo '[INFO] Try to increase number of threads (-t) or manually split your scaffold data.'
+	exit 1
+fi
+
+
+echo '[INFO]' ${#scaffoldsArray[@]} scaffolds with inner-scaffold-sequences detected...
+
+# Prestep: Index scaffolds file if not found
+if [ -f scaffolds.index ]
+then
+	echo '[INFO] Existing scaffolds index detected'
+else
+	echo '[INFO] Indexing scaffolds...' 
+	$GAPFINISHER_PREFIX"bin/fastaindex" -f scaffolds.fasta -i scaffolds.index
+fi
+
+cd "inner-scaffold-sequences/"
+echo '[INFO]' Changing working directory to `pwd`
+
+SCAFFOLD_INDEX=$wd/scaffolds.index
+threadCounter=1
+# Split input scaffolds for threads
+
+if [ $THREADS == "1" ]
+then
+	# single thread run
+	export -f gap_finish
+	echo "${SSPACE_LONG_READS_FASTA}" "${GAPFINISHER_DIR}" "${FASTA_INDEX}" "${SCAFFOLD_INDEX}" "${threadCounter}" "${GAPFINISHER_PREFIX}" "${MCR_LOCATION}" "${scaffoldsArray[@]}" | xargs bash -c 'gap_finish $@' {}
+
+else
+	
+	# Parallelized run (slice scaffolds array for threads):
+	export -f gap_finish
+	sliceLength=$((${#scaffoldsArray[@]}/$THREADS))
+	if [ $(( $THREADS*(${#scaffoldsArray[@]}/$THREADS) )) -lt ${#scaffoldsArray[@]} ]
+	then
+		#increment sliceLength first to next full integer
+		sliceLength=$(( (${#scaffoldsArray[@]}/$THREADS) + 1 ))
+	fi
+	nextSliceIndex=0
+	while [ $nextSliceIndex -le $(( ${#scaffoldsArray[@]}-1 )) ]; do
+
+		# control for final round so that final slice length equals length of the remaining scaffolds array:
+		if [ $((nextSliceIndex+sliceLength)) -gt ${#scaffoldsArray[@]} ]
+		then
+			sliceLength=$(( ${#scaffoldsArray[@]}-$nextSliceIndex ))
+		fi
+		echo "${SSPACE_LONG_READS_FASTA}" "${FASTA_INDEX}" "${SCAFFOLD_INDEX}" "${threadCounter}" "${GAPFINISHER_PREFIX}" "${MCR_LOCATION}" "${scaffoldsArray[@]:$nextSliceIndex:$sliceLength}" | xargs bash -c 'gap_finish $@ &' {}
+		wait
+		threadCounter=$((threadCounter+1))
+		nextSliceIndex=$(($nextSliceIndex+$sliceLength))
+
+	done
+
+fi
+
+# Results compiling logic:
+
+cd $PACBIO_SCAFFOLDER_RESULTS
+echo "[INFO] Compiling results..."
+if [ -z `find inner-scaffold-sequences/ -name "*FINAL.final.fasta"` ]
+then
+	echo "[INFO] 0 gap filled scaffolds found, gapFinisher must not have filled any gaps."
+	exit
+else
+	cat `find inner-scaffold-sequences/ -name "*FINAL.final.fasta"` > filled_scaffolds.fasta
+	grep ">" filled_scaffolds.fasta > filled_headers
+	grep -f filled_headers -v scaffolds.fasta > unfilled_etc
+	grep ">" unfilled_etc | sed -e 's/>//' > unfilled_headers
+	$GAPFINISHER_PREFIX"bin/fastafetch" -F TRUE -q unfilled_headers -f scaffolds.fasta -i scaffolds.index > unfilled_scaffolds.fasta
+	cat filled_scaffolds.fasta unfilled_scaffolds.fasta > scaffolds_gapfilled_FINAL.fasta
+
+	#REMOVE intermediate files:
+	rm filled_scaffolds.fasta
+	rm filled_headers
+	rm unfilled_etc
+	rm unfilled_headers
+	rm unfilled_scaffolds.fasta
+	
+	echo "[INFO] gapFinisher done. Results are in file:" $PACBIO_SCAFFOLDER_RESULTS"/scaffolds_gapfilled_FINAL.fasta"
+fi
+
+# TODO: Optional cleanup logic:
