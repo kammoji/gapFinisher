@@ -41,12 +41,14 @@ Since version 0.1, following people have contributed to gapFinisher:
 Juhana I Kammonen
 Olli-Pekka Smolander
 Ari Löytynoja
-Pia Laine
+Pia K Laine
 Lars Paulin
 Pedro AB Pereira
 Patrik Koskinen
 Jukka Jernvall
 Petri Auvinen
+Carolin Kolmeder
+Tarja Sundell
 
 
 d. Disclaimer
