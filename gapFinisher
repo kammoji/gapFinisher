@@ -204,7 +204,7 @@ else	# Parse command line options
 	    *)
 		    # unknown option
 		echo [ERROR] Unknown 'option(s)' passed, please check 'command' line
-		echo Usage: gapFinisher '-i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_SSPACE_LONG_READS_FASTA> -m <MCR_LOCATION>'
+		echo Usage: gapFinisher '-i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_SSPACE_LONG_READS_FASTA> -m <MCR_LOCATION> -t <NUM_THREADS>'
 		echo For full help run: gapFinisher -h
 		echo 'Contact juhana.kammonen@helsinki.fi for further support'
 		echo
@@ -338,13 +338,13 @@ else
 		fi
 		gap_finish "${SSPACE_LONG_READS_FASTA}" "${FASTA_INDEX}" "${SCAFFOLD_INDEX}" "${threadCounter}" "${GAPFINISHER_PREFIX}" "${MCR_LOCATION}" "${scaffoldsArray[@]:$nextSliceIndex:$sliceLength}" &
 		pids+=($!)
-		echo "Spawned Thread $threadCounter and got PID ${pids[-1]}."
+		#echo "Spawned Thread $threadCounter and got PID ${pids[-1]}."
 		threadCounter=$((threadCounter+1))
 		nextSliceIndex=$(($nextSliceIndex+$sliceLength))
 
 	done
 	for pid in ${pids[@]} ; do
-  		echo "Waiting for PID $pid."
+  		#echo "Waiting for PID $pid."
   		wait $pid
 	done
 
