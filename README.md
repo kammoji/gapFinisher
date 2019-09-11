@@ -26,8 +26,6 @@ FGAP is provided with the gapFinisher download so that does not need to be insta
 
 2. In your preferred installation directory (e.g. /usr/bin/ ; /home/user/bin/ ):
 
-	wget http://www.helsinki.fi/~jkammone/gapFinisher.zip
-	unzip gapFinisher.zip
 	cd gapFinisher
 	chmod -R 775 *
 
