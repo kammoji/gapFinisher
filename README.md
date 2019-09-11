@@ -1,7 +1,5 @@
 
-gapFinisher - a reliable gap filling pipeline for SSPACE-LongRead scaffolder output
-
-Juhana Kammonen 8.12.2017
+## gapFinisher - A reliable gap filling pipeline for SSPACE-LongRead scaffolder output
 
 -------------------------------
 
@@ -15,6 +13,16 @@ a. Installation
 	https://sourceforge.net/projects/fgap/files/MCR_LINUX64b.tar.gz
 
 UNIX archives are in the center column of that webpage
+
+Installation instructions can be found at:
+
+https://github.com/pirovc/fgap
+
+at chapters
+
+"Download MCR" and "Install MCR".
+
+FGAP is provided with the gapFinisher download so that does not need to be installed.
 
 2. In your preferred installation directory (e.g. /usr/bin/ ; /home/user/bin/ ):
 
@@ -35,23 +43,25 @@ After steps in a.
 	
 
 c. Contributors
+---------------
 
 Since version 0.1, following people have contributed to gapFinisher:
 
-Juhana I Kammonen
-Olli-Pekka Smolander
-Ari Löytynoja
-Pia K Laine
-Lars Paulin
-Pedro AB Pereira
-Patrik Koskinen
-Jukka Jernvall
-Petri Auvinen
-Carolin Kolmeder
-Tarja Sundell
+- Juhana I Kammonen
+- Olli-Pekka Smolander
+- Ari Löytynoja
+- Pia K Laine
+- Lars Paulin
+- Pedro AB Pereira
+- Patrik Koskinen
+- Jukka Jernvall
+- Petri Auvinen
+- Carolin Kolmeder
+- Tarja Sundell
 
 
 d. Disclaimer
+-------------
 
 GPL version 3:
 
@@ -71,6 +81,7 @@ GPL version 3:
 
 
 e. How to cite gapFinisher
+--------------------------
 
 Where applicable, please cite gapFinisher as:
 
