@@ -26,8 +26,10 @@ FGAP is provided with the gapFinisher download so that does not need to be insta
 
 2. In your preferred installation directory (e.g. /usr/bin/ ; /home/user/bin/ ):
 
-	cd gapFinisher
-	chmod -R 775 *
+<pre>
+cd gapFinisher
+chmod -R 775 *
+</pre>
 
 NOTE: sudo these if needed
 
@@ -37,7 +39,9 @@ b. Running gapFinisher
 
 After steps in a.
 
-	./gapFinisher -i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_PACBIO_LONG_READS_USED_BY_FGAP> -m <MCR_LOCATION>
+<pre>
+./gapFinisher -i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_PACBIO_LONG_READS_USED_BY_FGAP> -m <MCR_LOCATION>
+</pre>
 	
 
 c. Contributors
