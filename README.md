@@ -12,9 +12,7 @@ Get and install MATLAB Compiler runtime (MCR) from:
 
 https://sourceforge.net/projects/fgap/files/MCR_LINUX64b.tar.gz
 
-UNIX archives are in the center column of that webpage
-
-Installation instructions can be found at:
+Follow the MCR installation instructions at:
 
 https://github.com/pirovc/fgap
 
@@ -22,7 +20,7 @@ at chapters
 
 "Download MCR" and "Install MCR".
 
-FGAP is provided with the gapFinisher download so that does not need to be installed.
+FGAP itself is provided with the gapFinisher download so that does not need to be installed.
 
 In your preferred installation directory (e.g. /usr/bin/ ; /home/user/bin/ ):
 
