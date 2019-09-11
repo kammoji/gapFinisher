@@ -40,6 +40,14 @@ After steps in a.
 ~~~
 ./gapFinisher -i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_LONG_READS_FASTA_USED_WITH_SSPACE> -m <MCR_LOCATION> -t <NUM_THREADS>
 ~~~
+
+Example:
+
+~~~
+./gapFinisher -i /home/kammoji/test/scaffolding/PacBio_scaffolder_results -l /home/kammoji/test/filtered_subreads.60X.fasta -m /home/kammoji/bin/MCR_LINUX64b/v717 -t 1
+#NOTE: -t needs to be specified always! The current version of gapFinisher does not have a default set.
+~~~
+
 	
 
 c. Contributors
