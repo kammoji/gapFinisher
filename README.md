@@ -8,9 +8,9 @@ PREREQUISITE: A successful run of SSPACE-LongRead so that the directory "inner-s
 a. Installation
 ---------------
 
-1. Get and install MATLAB Compiler runtime (MCR) from:
+Get and install MATLAB Compiler runtime (MCR) from:
 
-	https://sourceforge.net/projects/fgap/files/MCR_LINUX64b.tar.gz
+https://sourceforge.net/projects/fgap/files/MCR_LINUX64b.tar.gz
 
 UNIX archives are in the center column of that webpage
 
@@ -24,14 +24,14 @@ at chapters
 
 FGAP is provided with the gapFinisher download so that does not need to be installed.
 
-2. In your preferred installation directory (e.g. /usr/bin/ ; /home/user/bin/ ):
+In your preferred installation directory (e.g. /usr/bin/ ; /home/user/bin/ ):
 
 <pre>
 cd gapFinisher
 chmod -R 775 *
 </pre>
 
-NOTE: sudo these if needed
+NOTE: sudo the chmod if needed
 
 
 b. Running gapFinisher
@@ -40,7 +40,7 @@ b. Running gapFinisher
 After steps in a.
 
 ~~~
-./gapFinisher -i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_PACBIO_LONG_READS_USED_BY_FGAP> -m <MCR_LOCATION>
+./gapFinisher -i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_LONG_READS_FASTA_USED_WITH_SSPACE> -m <MCR_LOCATION>
 ~~~
 	
 
@@ -65,12 +65,10 @@ Since version 0.1, following people have contributed to gapFinisher:
 d. Disclaimer
 -------------
 
-GPL version 3:
-
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    (at your option) any later version. Please see file "LICENSE" for details.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -87,6 +85,6 @@ e. How to cite gapFinisher
 
 Where applicable, please cite gapFinisher as:
 
-Kammonen, J.I, Smolander, OP., Paulin, L., Laine, P., Pereira, PAB., Koskinen, P., Jernvall J. & Auvinen, P.
-gapFinisher: a reliable gap filling pipeline for SSPACE-LongRead scaffolder output. PLoS ONE 14(9): e0216885.
+Kammonen, JI, Smolander, OP., Paulin, L., Laine, P., Pereira, PAB., Koskinen, P., Jernvall J. & Auvinen, P.
+gapFinisher: A reliable gap filling pipeline for SSPACE-LongRead scaffolder output. PLoS ONE 14(9): e0216885.
 
