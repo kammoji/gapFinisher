@@ -39,9 +39,9 @@ b. Running gapFinisher
 
 After steps in a.
 
-<pre>
+~~~
 ./gapFinisher -i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_PACBIO_LONG_READS_USED_BY_FGAP> -m <MCR_LOCATION>
-</pre>
+~~~
 	
 
 c. Contributors
