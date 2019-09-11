@@ -75,5 +75,5 @@ e. How to cite gapFinisher
 Where applicable, please cite gapFinisher as:
 
 Kammonen, J.I, Smolander, OP., Paulin, L., Laine, P., Pereira, PAB., Koskinen, P., Jernvall J. & Auvinen, P.
-gapFinisher: a reliable gap filling pipeline for SSPACE-LongRead scaffolder output. Unpublished manuscript.
+gapFinisher: a reliable gap filling pipeline for SSPACE-LongRead scaffolder output. PLoS ONE 14(9): e0216885.
 

@@ -320,6 +320,7 @@ then
 else
 	
 	# Parallelized run (slice scaffolds array for threads):
+	pids=()
 	export -f gap_finish
 	sliceLength=$((${#scaffoldsArray[@]}/$THREADS))
 	if [ $(( $THREADS*(${#scaffoldsArray[@]}/$THREADS) )) -lt ${#scaffoldsArray[@]} ]
@@ -335,11 +336,16 @@ else
 		then
 			sliceLength=$(( ${#scaffoldsArray[@]}-$nextSliceIndex ))
 		fi
-		echo "${SSPACE_LONG_READS_FASTA}" "${FASTA_INDEX}" "${SCAFFOLD_INDEX}" "${threadCounter}" "${GAPFINISHER_PREFIX}" "${MCR_LOCATION}" "${scaffoldsArray[@]:$nextSliceIndex:$sliceLength}" | xargs bash -c 'gap_finish $@ &' {}
-		wait
+		gap_finish "${SSPACE_LONG_READS_FASTA}" "${FASTA_INDEX}" "${SCAFFOLD_INDEX}" "${threadCounter}" "${GAPFINISHER_PREFIX}" "${MCR_LOCATION}" "${scaffoldsArray[@]:$nextSliceIndex:$sliceLength}" &
+		pids+=($!)
+		echo "Spawned Thread $threadCounter and got PID ${pids[-1]}."
 		threadCounter=$((threadCounter+1))
 		nextSliceIndex=$(($nextSliceIndex+$sliceLength))
 
+	done
+	for pid in ${pids[@]} ; do
+  		echo "Waiting for PID $pid."
+  		wait $pid
 	done
 
 fi
