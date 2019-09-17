@@ -1,5 +1,5 @@
 
-![](img/mindthegap.png =100x)
+<img src="img/mindthegap.png" width="100x"/>
 ## gapFinisher - A reliable gap filling pipeline for SSPACE-LongRead scaffolder output
 
 -------------------------------
