@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # File: gapFinisher
-# Author: Juhana Kammonen et al. 30.11.2017
+# Author: Juhana Kammonen et al. 5.12.2015 - 17.9.2019
 # Purpose: Finish (fill) gaps from SSPACE-LongRead (v 1.1) output
 
 # Prerequisites:  Existing SSPACE-LongRead run with -k 1 option (directory "inner-scaffold-sequences" exists)
 #		  FGAP v1.8 installed and set into your system path
 
-# Usage: gapFinisher -i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_SSPACE_LONG_READS_FASTA>
+# Usage: gapFinisher -i <PATH_TO_SSPACE_LONGREAD_OUTPUT_FOLDER> -l <PATH_TO_SSPACE_LONG_READS_FASTA> -m <MCR_LOCATION> -t <NUM_THREADS>
 
 #
 # DECLARATIONS:

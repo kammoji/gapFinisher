@@ -1,4 +1,5 @@
 
+![](img/mindthegap.png)
 ## gapFinisher - A reliable gap filling pipeline for SSPACE-LongRead scaffolder output
 
 -------------------------------
@@ -91,6 +92,6 @@ e. How to cite gapFinisher
 
 Where applicable, please cite gapFinisher as:
 
-Kammonen, JI, Smolander, OP., Paulin, L., Laine, P., Pereira, PAB., Koskinen, P., Jernvall J. & Auvinen, P.
+Kammonen, JI, Smolander, OP., Paulin, L., Laine, P., Pereira, PAB., Koskinen, P., Jernvall J. & Auvinen, P. (2019).
 gapFinisher: A reliable gap filling pipeline for SSPACE-LongRead scaffolder output. PLoS ONE 14(9): e0216885.
 
